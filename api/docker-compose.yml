@@ -1,0 +1,31 @@
+# api + Postgres. The engine is NOT here — it runs on a separate machine (ENGINE_URL).
+# Host ports default to 3100 / 5433 so they don't clash with other projects on 3000 / 5432.
+# Override with API_PORT / DB_PORT in .env. Inside the containers they stay 3000 / 5432.
+services:
+  api:
+    build: .
+    env_file: .env
+    environment:
+      PORT: 3000                                         # inside the container
+      DATABASE_URL: postgresql://app:app@db:5432/app     # container → db by service name
+    ports: ["${API_PORT:-3100}:3000"]
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./content:/app/content:ro
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app
+      POSTGRES_DB: app
+    ports: ["${DB_PORT:-5433}:5432"]   # local dev only
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app"]
+      interval: 5s
+      retries: 10
+volumes:
+  pgdata:

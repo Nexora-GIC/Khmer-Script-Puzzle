@@ -1,0 +1,104 @@
+# The api ↔ engine contract. Source of truth for both sides:
+#   engine: `make gen` → internal/api/gen.go (oapi-codegen)
+#   api:    `npm run gen:engine` → src/engine/generated/engine.d.ts (openapi-typescript)
+#
+# Rule: the engine is a pure function. Every call carries the child's current state;
+# the response carries the new state. The engine stores nothing, so retries are safe.
+openapi: 3.0.3
+info:
+  title: engine
+  version: 0.0.0
+servers:
+  - url: http://localhost:8080
+security:
+  - bearer: []
+paths:
+  /healthz:
+    get:
+      security: []
+      responses:
+        "200":
+          description: Engine is up
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Health" }
+  /v1/attempts/judge:
+    post:
+      summary: Judge one answer, update mastery, pick the next word
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/JudgeRequest" }
+      responses:
+        "200":
+          description: Result
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/JudgeResponse" }
+  /v1/trace/score:
+    post:
+      summary: Score a traced stroke against the outline
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, description: "TODO" }
+      responses:
+        "200":
+          description: Score
+          content:
+            application/json:
+              schema: { type: object, description: "TODO" }
+  /v1/recommend:
+    post:
+      summary: What the child should practise (parent report)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ChildState" }
+      responses:
+        "200":
+          description: Recommendations
+          content:
+            application/json:
+              schema: { type: object, description: "TODO" }
+components:
+  securitySchemes:
+    bearer:
+      type: http
+      scheme: bearer
+  schemas:
+    Health:
+      type: object
+      required: [status, engineVersion]
+      properties:
+        status: { type: string }
+        engineVersion: { type: string }
+        modelVersion: { type: string }
+        contentVersion: { type: string }
+    Versions:
+      type: object
+      required: [engineVersion, modelVersion, contentVersion]
+      properties:
+        engineVersion: { type: string }
+        modelVersion: { type: string, description: "model file name + hash" }
+        contentVersion: { type: string, description: "words.json hash" }
+    ChildState:
+      type: object
+      description: "TODO: per-piece mastery + confusion counts. Stored by the api, never by the engine."
+    JudgeRequest:
+      type: object
+      required: [attemptId, childState]
+      properties:
+        attemptId: { type: string, format: uuid }
+        childState: { $ref: "#/components/schemas/ChildState" }
+        # TODO: wordId, mode, slot answers / strokes
+    JudgeResponse:
+      type: object
+      required: [versions, childState]
+      properties:
+        versions: { $ref: "#/components/schemas/Versions" }
+        childState: { $ref: "#/components/schemas/ChildState" }
+        # TODO: correct, per-slot result, guesses + confidence, next word, decoys, mode, hints, stars

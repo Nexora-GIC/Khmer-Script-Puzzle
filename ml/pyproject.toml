@@ -1,0 +1,24 @@
+[project]
+name = "trainer"
+version = "0.0.0"
+description = "Trains the handwriting piece classifier and analyses the classroom trial. Never deployed."
+requires-python = ">=3.11"
+# Core = enough to evaluate Chakkhu (ONNX) and our own exported model.
+dependencies = [
+  "numpy",
+  "pillow",
+  "huggingface-hub",
+  "onnxruntime",
+]
+
+[project.optional-dependencies]
+# mengheang/khmer-handwritten-ocr (evaluate) + fine-tuning + ONNX export
+torch = ["torch", "torchvision", "safetensors", "opencv-python-headless", "onnx"]
+analysis = ["pandas", "scipy", "matplotlib", "jupyter"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/trainer"]

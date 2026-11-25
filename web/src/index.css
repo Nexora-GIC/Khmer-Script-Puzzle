@@ -1,0 +1,11 @@
+/* Drop the Khmer font file into public/fonts/ (e.g. Noto Sans Khmer, OFL licence). */
+@font-face {
+  font-family: 'Khmer UI';
+  src: url('/fonts/NotoSansKhmer.woff2') format('woff2');
+  font-display: swap;
+}
+
+body {
+  margin: 0;
+  font-family: 'Khmer UI', 'Noto Sans Khmer', system-ui, sans-serif;
+}

@@ -1,0 +1,5 @@
+bin/
+.env
+models/*.onnx
+models/labels.json
+content/words.json
